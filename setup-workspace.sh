@@ -23,6 +23,33 @@ if [[ $EUID -eq 0 ]]; then
    exit 1
 fi
 
+# Create backup of home directory
+log_info "Creating backup of home directory..."
+homedirectory="$HOME"
+backup_file="/tmp/home_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
+tar -czf "$backup_file" -C "$(dirname "$homedirectory")" "$(basename "$homedirectory")"
+log_success "Home directory backup created at: $backup_file"
+
+# User confirmation before proceeding
+echo ""
+log_warning "This script will overwrite the following files and configurations:"
+echo "  • ~/.bashrc (Bash configuration)"
+echo "  • ~/.config/fish/config.fish (Fish shell configuration)"
+echo "  • ~/.config/fish/functions/* (Fish shell functions)"
+echo "  • ~/.config/starship.toml (Starship prompt configuration)"
+echo "  • ~/.bash_aliases (Bash aliases)"
+echo "  • Default shell will be changed to Fish"
+echo "  • Various packages and tools will be installed"
+echo ""
+log_info "Your home directory backup is saved at: $backup_file"
+echo ""
+read -p "Do you want to continue with the setup? [y/N]: " -n 1 -r
+echo ""
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    log_info "Setup cancelled by user"
+    exit 0
+fi
+
 log_info "Starting workspace setup for Ubuntu..."
 
 # Update system packages
